@@ -3,7 +3,6 @@ Bullet = Class{}
 
 local player_img = love.graphics.newImage('Graphics/player.png')
 local player_shoot_img = love.graphics.newImage('Graphics/player_shoot.png')
-local player_shoot_sound = love.audio.newSource('Sounds/player_shoot.ogg')
 
 local bullet_speed = 5
 
