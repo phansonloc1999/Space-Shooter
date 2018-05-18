@@ -1,10 +1,16 @@
 Player = Class{}
 Bullet = Class{}
 
+-- Image Objects
 local player_img = love.graphics.newImage('Graphics/player.png')
 local player_shoot_img = love.graphics.newImage('Graphics/player_shoot.png')
 
+-- Sound Objects
+local fire = love.audio.newSource('Sounds/player_fire.wav', 'static')
+local hit = love.audio.newSource('Sounds/player_hit.wav', 'static')
+
 local bullet_speed = 5
+local invunerableTimer = 0
 
 function Player:init()
     self.width, self.height = player_img:getDimensions()
@@ -19,10 +25,16 @@ function Player:init()
     self.bullet.cooldownSpeed = 0.5
 
     self.bullets = {}
+
+    -- Player score and HP
+    self.score = 0
+    self.health = 100
 end
 
 function Player:render()
     love.graphics.draw(player_img, self.x, self.y)
+    love.graphics.setColor(255, 0, 255)
+    LOG("HP:"..self.health, self.x - 20, self.y - 12)
 
     for k, shot in ipairs(self.bullets) do
         shot:render()
@@ -32,6 +44,7 @@ end
 function Player:update(dt)
     Player:move(self)
     Player:shoot(self, dt)
+    Player:hit(self)
 
     for k, shot in ipairs(self.bullets) do
         shot:update()
@@ -49,18 +62,6 @@ function Player:update(dt)
     end
 end
 
-function Player:shoot(self, dt)
-    if (love.keyboard.wasPressed('space')) and (self.bullet.cooldownTimer == 0) then
-        table.insert(self.bullets, Bullet())
-
-        -- Initilize the latest bullet according to current x, y of player
-        self.bullets[#self.bullets]:init(self.bullet.x, self.bullet.y)
-
-        -- Start default cooldown timer here
-        self.bullet.cooldownTimer = 25
-    end
-end
-
 function Player:move(self)
     if (love.keyboard.isDown('w')) then self.y = math.max(0, self.y - self.speed) end
     if (love.keyboard.isDown('s')) then self.y = math.min(WINDOW_HEIGHT - self.height, self.y + self.speed) end
@@ -70,6 +71,37 @@ function Player:move(self)
     -- Update new position for new bullet
     self.bullet.x = self.x + self.width / 2 - self.bullet.width / 2
     self.bullet.y = self.y - self.bullet.height
+end
+
+function Player:shoot(self, dt)
+
+    if (love.keyboard.wasPressed('space')) and (self.bullet.cooldownTimer == 0) then
+        table.insert(self.bullets, Bullet())
+        fire:play()
+
+        -- Initilize the latest bullet according to current x, y of player
+        self.bullets[#self.bullets]:init(self.bullet.x, self.bullet.y)
+
+        -- Start default cooldown timer here
+        self.bullet.cooldownTimer = 35
+    end
+end
+
+function Player:hit(self)
+    if (invunerableTimer ~= 0) then invunerableTimer = invunerableTimer - 1 end
+
+    if (invunerableTimer == 0) then -- if not hit yet, check and set invulnerable time
+        for k, e in ipairs(Enemies) do
+            if (CheckCollision(self.x, self.y, self.width, self.height, e.x, e.y, enemy_width, enemy_height))then
+                self.health = self.health - 20
+                invunerableTimer = 100
+                hit:play()
+                break
+            end
+        end
+    end
+
+    if (self.health < 1) then love.event.quit( "restart" ) end
 end
 
 -------------------------- Functions of a Bullet-----------------------------------
