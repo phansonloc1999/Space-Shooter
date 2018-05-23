@@ -34,7 +34,7 @@ end
 function Player:render()
     love.graphics.draw(player_img, self.x, self.y)
     love.graphics.setColor(255, 0, 255)
-    LOG("HP:"..self.health, self.x - 20, self.y - 12)
+    LOG("HP:"..self.health, 0, 20)
 
     for k, shot in ipairs(self.bullets) do
         shot:render()
@@ -93,7 +93,7 @@ function Player:hit(self)
     if (invunerableTimer == 0) then -- if not hit yet, check and set invulnerable time
         for k, e in ipairs(Enemies) do
             if (CheckCollision(self.x, self.y, self.width, self.height, e.x, e.y, enemy_width, enemy_height))then
-                self.health = self.health - 20
+                self.health = self.health - 50
                 invunerableTimer = 100
                 hit:play()
                 break
@@ -101,7 +101,7 @@ function Player:hit(self)
         end
     end
 
-    if (self.health < 1) then love.event.quit( "restart" ) end
+    if (self.health < 1) then love.event.quit() end
 end
 
 -------------------------- Functions of a Bullet-----------------------------------

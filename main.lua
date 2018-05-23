@@ -7,6 +7,8 @@ require('src/util')
 
 WINDOW_WIDTH, WINDOW_HEIGHT = 800, 600
 
+gFont = love.graphics.setNewFont('Fonts/Pixel-Miners.ttf', 14)
+
 function love.load()
     player = Player()
     player:init()
