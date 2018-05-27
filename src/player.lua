@@ -10,7 +10,6 @@ local fire = love.audio.newSource('Sounds/player_fire.wav', 'static')
 local hit = love.audio.newSource('Sounds/player_hit.wav', 'static')
 
 local bullet_speed = 5
-local invunerableTimer = 0
 
 function Player:init()
     self.width, self.height = player_img:getDimensions()
@@ -29,10 +28,13 @@ function Player:init()
     -- Player score and HP
     self.score = 0
     self.health = 100
+    self.invunerableTimer = 0
+    self.flickeringTimer = 20
 end
 
 function Player:render()
-    love.graphics.draw(player_img, self.x, self.y)
+    if (self.flickeringTimer == 0) and (self.invunerableTimer ~= 0) then
+    else love.graphics.draw(player_img, self.x, self.y) end
     love.graphics.setColor(255, 0, 255)
     LOG("HP:"..self.health, 0, 20)
 
@@ -70,7 +72,7 @@ function Player:move(self)
 
     -- Update new position for new bullet
     self.bullet.x = self.x + self.width / 2 - self.bullet.width / 2
-    self.bullet.y = self.y - self.bullet.height
+    self.bullet.y = self.y - self.bullet.height + 10
 end
 
 function Player:shoot(self, dt)
@@ -88,20 +90,24 @@ function Player:shoot(self, dt)
 end
 
 function Player:hit(self)
-    if (invunerableTimer ~= 0) then invunerableTimer = invunerableTimer - 1 end
+    if (self.invunerableTimer ~= 0) then
+        self.invunerableTimer = self.invunerableTimer - 1
+        if (self.flickeringTimer ~= 0) then self.flickeringTimer = self.flickeringTimer - 1
+        else self.flickeringTimer = 20 end
+    end
 
-    if (invunerableTimer == 0) then -- if not hit yet, check and set invulnerable time
+    if (self.invunerableTimer == 0) then -- if not hit yet, check and set invulnerable time
         for k, e in ipairs(Enemies) do
-            if (CheckCollision(self.x, self.y, self.width, self.height, e.x, e.y, enemy_width, enemy_height))then
+            if (CheckCollision(self.x + 10, self.y + 10, self.width - 20, self.height - 20, e.x, e.y, enemy_width, enemy_height))then
                 self.health = self.health - 50
-                invunerableTimer = 100
+                self.invunerableTimer = 120
                 hit:play()
                 break
             end
         end
     end
 
-    if (self.health < 1) then love.event.quit() end
+    if (self.health < 1) then --[[love.event.quit("restart")]] end
 end
 
 -------------------------- Functions of a Bullet-----------------------------------
